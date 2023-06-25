@@ -1,10 +1,7 @@
 const inquirer = require('inquirer');
 const { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateEmployeeRole } = require('./db');
-const fs = require('fs');
-const path = require('path');
-const connection = require('./db/connection');
 
-function startApp() {
+function runApp() {
   inquirer
     .prompt({
       name: 'action',
@@ -18,42 +15,37 @@ function startApp() {
         'Add a role',
         'Add an employee',
         'Update an employee role',
-        'Seed data',
         'Exit'
       ]
     })
     .then(answer => {
       switch (answer.action) {
         case 'View all departments':
-          viewAllDepartments();
+          viewAllDepartments(runApp);
           break;
 
         case 'View all roles':
-          viewAllRoles();
+          viewAllRoles(runApp);
           break;
 
         case 'View all employees':
-          viewAllEmployees();
+          viewAllEmployees(runApp);
           break;
 
         case 'Add a department':
-          promptAddDepartment();
+          promptAddDepartment(runApp);
           break;
 
         case 'Add a role':
-          promptAddRole();
+          promptAddRole(runApp);
           break;
 
         case 'Add an employee':
-          promptAddEmployee();
+          promptAddEmployee(runApp);
           break;
 
         case 'Update an employee role':
-          promptUpdateEmployeeRole();
-          break;
-
-        case 'Seed data':
-          seedData();
+          promptUpdateEmployeeRole(runApp);
           break;
 
         case 'Exit':
@@ -63,19 +55,19 @@ function startApp() {
     });
 }
 
-function promptAddDepartment() {
+function promptAddDepartment(callback) {
   inquirer
     .prompt({
       name: 'departmentName',
       type: 'input',
       message: 'Enter the name of the department:'
     })
-    .then(answer => {
-      addDepartment(answer.departmentName);
+    .then(answers => {
+      addDepartment(answers.departmentName, callback);
     });
 }
 
-function promptAddRole() {
+function promptAddRole(callback) {
   inquirer
     .prompt([
       {
@@ -95,11 +87,11 @@ function promptAddRole() {
       }
     ])
     .then(answers => {
-      addRole(answers.roleTitle, answers.roleSalary, answers.departmentId);
+      addRole(answers.roleTitle, answers.roleSalary, answers.departmentId, callback);
     });
 }
 
-function promptAddEmployee() {
+function promptAddEmployee(callback) {
   inquirer
     .prompt([
       {
@@ -120,21 +112,21 @@ function promptAddEmployee() {
       {
         name: 'managerId',
         type: 'input',
-        message: 'Enter the manager ID for the employee (leave blank if none):'
+        message: 'Enter the manager ID for the employee (optional):'
       }
     ])
     .then(answers => {
-      addEmployee(answers.firstName, answers.lastName, answers.roleId, answers.managerId);
+      addEmployee(answers.firstName, answers.lastName, answers.roleId, answers.managerId, callback);
     });
 }
 
-function promptUpdateEmployeeRole() {
+function promptUpdateEmployeeRole(callback) {
   inquirer
     .prompt([
       {
         name: 'employeeId',
         type: 'input',
-        message: 'Enter the ID of the employee to update:'
+        message: 'Enter the ID of the employee you want to update:'
       },
       {
         name: 'roleId',
@@ -143,27 +135,8 @@ function promptUpdateEmployeeRole() {
       }
     ])
     .then(answers => {
-      updateEmployeeRole(answers.employeeId, answers.roleId);
+      updateEmployeeRole(answers.employeeId, answers.roleId, callback);
     });
 }
 
-// function seedData() {
-//   const seedFilePath = path.join(__dirname, 'db', 'seed.sql');
-//   fs.readFile(seedFilePath, 'utf8', (err, data) => {
-//     if (err) {
-//       console.error('Error reading seed.sql file:', err);
-//       startApp();
-//     } else {
-//       connection.query(data, (err, res) => {
-//         if (err) {
-//           console.error('Error seeding data:', err);
-//         } else {
-//           console.log('Data seeded successfully!');
-//         }
-//         startApp();
-//       });
-//     }
-//   });
-// }
-
-startApp();
+runApp();
